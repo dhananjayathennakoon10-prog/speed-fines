@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Expressway Fines – Sri Lanka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --surface:#FFFFFF; --ink:#14201A; --muted:#5B6B62; --line:#D9DFD8;
+  --green:#0E5C3A; --green-ink:#FFFFFF; --green-soft:#DDEDE4;
+  --amber:#F2B400; --amber-soft:#FFF1C6; --amber-ink:#5C4300;
+  --red:#B3261E; --red-soft:#FBE3E0;
+  --blue-soft:#E1EAF7; --blue-ink:#1D3F73;
+  --paid-ink:#0E5C3A;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1511; --surface:#16211B; --ink:#E8EFEA; --muted:#93A59B; --line:#27352C;
+    --green:#1E8A5A; --green-soft:#17352A;
+    --amber-soft:#3A2F0C; --amber-ink:#F6D56A;
+    --red:#F0867F; --red-soft:#3B1A18;
+    --blue-soft:#18284A; --blue-ink:#A9C4F2;
+    --paid-ink:#6FD1A0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1511; --surface:#16211B; --ink:#E8EFEA; --muted:#93A59B; --line:#27352C;
+  --green:#1E8A5A; --green-soft:#17352A;
+  --amber-soft:#3A2F0C; --amber-ink:#F6D56A;
+  --red:#F0867F; --red-soft:#3B1A18;
+  --blue-soft:#18284A; --blue-ink:#A9C4F2;
+  --paid-ink:#6FD1A0;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:"Archivo","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+#app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative}
+@media(min-width:600px){
+  body{padding:24px 0}
+  #app{min-height:calc(100vh - 48px);border-radius:28px;border:1px solid var(--line);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.12)}
+}
+main{flex:1;padding:0 16px 96px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 10px}
+.topbar h1{font-size:20px;margin:0;font-weight:700;font-stretch:90%}
+.who{font-size:13px;color:var(--muted)}
+.iconbtn{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;display:grid;place-items:center}
+
+/* Expressway gantry sign: the one memorable element */
+.gantry{background:var(--green);color:var(--green-ink);border-radius:10px;padding:14px 14px 12px;position:relative;margin:6px 0 14px;
+  box-shadow:inset 0 0 0 3px var(--green), inset 0 0 0 5px rgba(255,255,255,.9)}
+.gantry::before,.gantry::after{content:"";position:absolute;bottom:-16px;width:8px;height:16px;background:var(--line)}
+.gantry::before{left:28px}.gantry::after{right:28px}
+.gantry .head{display:flex;justify-content:space-between;align-items:center;padding:0 6px 8px;font-size:13px;font-stretch:90%;opacity:.95}
+.gantry .e{background:#fff;color:var(--green);font-weight:800;border-radius:4px;padding:1px 7px;font-size:13px}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.45)}
+.count{padding:12px 6px 4px;text-align:center}
+.count+.count{border-left:1px solid rgba(255,255,255,.45)}
+.count b{display:block;font-size:40px;line-height:1;font-weight:800;font-stretch:85%}
+.count span{font-size:13px}
+.count.unpaid b{color:var(--amber)}
+.due{margin:22px 0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.due small{display:block;color:var(--muted);font-size:13px}
+.due strong{font-size:20px;font-stretch:90%}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
+.tab{border:0;background:none;border-radius:9px;padding:9px 4px;font-weight:600;font-size:14px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--green);color:var(--green-ink)}
+
+.list{display:flex;flex-direction:column;gap:10px;padding:0;margin:0;list-style:none}
+.fine{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center}
+.fine:active{transform:scale(.99)}
+.sign{flex:none;width:54px;height:54px;border-radius:50%;background:#fff;border:5px solid #C8281E;display:grid;place-items:center;color:#111;font-weight:800;font-size:19px;font-stretch:80%;line-height:1}
+.sign.paid{border-color:var(--green)}
+.fine .mid{flex:1;min-width:0}
+.fine .road{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fine .meta{font-size:13px;color:var(--muted)}
+.fine .end{text-align:right;flex:none}
+.fine .amt{font-weight:700}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;margin-top:4px}
+.b-unpaid{background:var(--amber-soft);color:var(--amber-ink)}
+.b-overdue{background:var(--red-soft);color:var(--red)}
+.b-paid{background:var(--green-soft);color:var(--paid-ink)}
+.b-appeal{background:var(--blue-soft);color:var(--blue-ink)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:28px 18px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);margin-bottom:4px}
+
+.btn{border:0;border-radius:12px;padding:13px 16px;font-weight:700;background:var(--green);color:var(--green-ink);width:100%}
+.btn.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:var(--amber);color:#2B2000}
+.btn[disabled]{opacity:.55}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.back{border:0;background:none;padding:14px 0 8px;font-weight:600;color:var(--green);display:flex;gap:6px;align-items:center}
+:root[data-theme="dark"] .back{color:var(--paid-ink)}
+.evidence{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#111}
+.evidence svg{display:block;width:100%;height:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 14px;margin:12px 0}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:15px}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{text-align:right;font-weight:600}
+.over{color:var(--red)}
+.note{font-size:13px;color:var(--muted);margin:10px 2px}
+
+.vehicle{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.plate{font-weight:800;font-stretch:90%;letter-spacing:.06em;background:#fff;color:#111;border:2px solid #111;border-radius:6px;padding:3px 10px;font-size:17px}
+.vehicle .info{flex:1;font-size:14px;color:var(--muted)}
+.vehicle .info b{color:var(--ink)}
+
+label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
+input[type=text],input[type=tel],select,textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-size:16px}
+textarea{min-height:90px;resize:vertical}
+
+nav.bottom{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bottom button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;font-size:12px;font-weight:600;color:var(--muted)}
+nav.bottom button[aria-current="page"]{color:var(--green)}
+:root[data-theme="dark"] nav.bottom button[aria-current="page"]{color:var(--paid-ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) nav.bottom button[aria-current="page"]{color:var(--paid-ink)}}
+
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--surface);width:100%;max-width:440px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.sheet{animation:none}}
+.sheet h2{margin:0 0 4px;font-size:20px;font-stretch:90%}
+.methods{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.method{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);text-align:left;width:100%}
+.method[aria-checked="true"]{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
+.method small{display:block;color:var(--muted)}
+.tick{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;margin:6px auto 10px}
+.center{text-align:center}
+
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:90%;text-align:center}
+
+.login{padding:48px 20px 24px;flex:1;display:flex;flex-direction:column}
+.login h1{font-size:30px;line-height:1.1;font-stretch:85%;margin:22px 0 8px}
+.login p{color:var(--muted);margin:0 0 8px}
+.demo{margin-top:auto;padding-top:20px;font-size:13px;color:var(--muted)}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.err{color:var(--red);font-size:14px;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const DAY = 86400000;
+const NOW = Date.now();
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rs = n => 'Rs ' + Number(n).toLocaleString('en-US');
+const fmtDate = t => new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const fmtTime = t => new Date(t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const fineFor = (limit, speed) => { const x = speed - limit; return x <= 20 ? 2500 : x <= 40 ? 5000 : 10000; };
+const rid = (p, n=6) => p + Math.random().toString(36).slice(2, 2+n).toUpperCase();
+
+const ROADS = [
+  {name:'Southern Expressway', code:'E01', limit:100, kms:[18,45,72,98,120]},
+  {name:'Outer Circular Expressway', code:'E02', limit:80, kms:[6,12,19]},
+  {name:'Colombo–Katunayake Expressway', code:'E03', limit:80, kms:[4,8,15]},
+  {name:'Central Expressway', code:'E06', limit:80, kms:[21,34,50]}
+];
+
+function seed(){
+  const f = (id, plate, r, km, speed, daysAgo, hh, status, extra={}) => {
+    const road = ROADS.find(x=>x.code===r);
+    const t = NOW - daysAgo*DAY; const d = new Date(t); d.setHours(hh, (hh*7)%60, (hh*13)%60);
+    return {id, plate, road:road.name, code:r, km, limit:road.limit, speed, amount:fineFor(road.limit,speed),
+      time:d.getTime(), due:d.getTime()+14*DAY, status, ...extra};
+  };
+  return {
+    fines:[
+      f('F-260918-A1','CAB-4821','E01',45,126,3,14,'unpaid'),
+      f('F-260922-B7','CAB-4821','E02',12,97,20,9,'unpaid'),
+      f('F-260801-C3','KP-5603','E03',8,118,45,21,'paid',{paidOn:NOW-40*DAY,method:'Card',ref:'RCP-8Q2M4X'}),
+      f('F-260703-D9','CAB-4821','E01',98,109,80,7,'paid',{paidOn:NOW-74*DAY,method:'LankaQR',ref:'RCP-K39TPZ'}),
+      f('F-261006-E4','KP-5603','E06',21,134,6,18,'appeal',{appealReason:'Speed reading seems wrong'}),
+      f('F-260612-G2','CAB-4821','E01',120,111,120,11,'paid',{paidOn:NOW-110*DAY,method:'Bank transfer',ref:'RCP-W7N1CD'})
+    ],
+    vehicles:[{plate:'CAB-4821',label:'Toyota Axio'},{plate:'KP-5603',label:'Honda Vezel'}]
+  };
+}
+
+/* ---------- state ---------- */
+const KEY = 'sl-speed-fines-v1';
+let S = { user:null, screen:'login', tab:'unpaid', nav:'fines', plate:'all', openId:null, sheet:null, toast:null, loginStep:1, loginErr:'', data:seed() };
+try { const saved = JSON.parse(localStorage.getItem(KEY)||'null'); if(saved && saved.data){ S.user=saved.user; S.data=saved.data; if(S.user) S.screen='home'; } } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({user:S.user,data:S.data})); }catch(e){} }
+
+const statusOf = f => f.status==='unpaid' && f.due < NOW ? 'overdue' : f.status;
+const label = {unpaid:'Unpaid', overdue:'Overdue', paid:'Paid', appeal:'Under appeal'};
+const visible = () => S.data.fines.filter(f => S.plate==='all' || f.plate===S.plate).sort((a,b)=>b.time-a.time);
+const payable = list => list.filter(f => f.status==='unpaid');
+
+/* ---------- icons ---------- */
+const I = {
+  list:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+  car:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5M3 16h18v3H3zM7 13h.01M17 13h.01"/></svg>',
+  user:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  back:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  bell:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg>',
+  check:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>'
+};
+
+/* ---------- evidence image (placeholder for camera still) ---------- */
+function evidence(f){
+  const over = f.speed - f.limit;
+  return `<svg viewBox="0 0 400 240" role="img" aria-label="Camera evidence: ${esc(f.plate)} at ${f.speed} km/h in a ${f.limit} zone">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3A47"/><stop offset="1" stop-color="#5B7083"/></linearGradient>
+    <linearGradient id="rd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3F44"/><stop offset="1" stop-color="#1C1F22"/></linearGradient>
+  </defs>
+  <rect width="400" height="240" fill="url(#sky)"/>
+  <path d="M0 110 L90 96 L170 104 L260 94 L400 108 V120 H0Z" fill="#23402F"/>
+  <path d="M0 240 V118 H400 V240Z" fill="url(#rd)"/>
+  <path d="M170 118 L230 118 L330 240 L70 240Z" fill="#2A2E32"/>
+  <path d="M200 118 L200 240" stroke="#E8E8E8" stroke-width="3" stroke-dasharray="14 14"/>
+  <path d="M70 240 L170 118" stroke="#E8E8E8" stroke-width="3"/><path d="M330 240 L230 118" stroke="#E8E8E8" stroke-width="3"/>
+  <g transform="translate(130 128)">
+    <rect x="0" y="40" width="140" height="62" rx="12" fill="#B9BEC4"/>
+    <path d="M18 40 L34 8 H106 L122 40Z" fill="#8E969E"/>
+    <path d="M30 38 L42 14 H98 L110 38Z" fill="#1B242C"/>
+    <rect x="8" y="56" width="22" height="10" rx="3" fill="#C0392B"/><rect x="110" y="56" width="22" height="10" rx="3" fill="#C0392B"/>
+    <rect x="38" y="66" width="64" height="22" rx="3" fill="#fff" stroke="#111" stroke-width="1.5"/>
+    <text x="70" y="82" text-anchor="middle" font-family="Archivo,Arial,sans-serif" font-weight="800" font-size="14" fill="#111" letter-spacing="1">${esc(f.plate)}</text>
+    <rect x="12" y="96" width="30" height="14" rx="5" fill="#111"/><rect x="98" y="96" width="30" height="14" rx="5" fill="#111"/>
+  </g>
+  <rect x="124" y="164" width="152" height="40" fill="none" stroke="#F2B400" stroke-width="2" stroke-dasharray="6 4" rx="4"/>
+  <rect x="0" y="0" width="400" height="26" fill="rgba(0,0,0,.6)"/>
+  <text x="10" y="17" font-family="Archivo,Arial,sans-serif" font-size="12" fill="#fff">CAM ${f.code}-K${f.km}   ${fmtDate(f.time)}  ${fmtTime(f.time)}</text>
+  <rect x="0" y="214" width="400" height="26" fill="rgba(0,0,0,.65)"/>
+  <text x="10" y="232" font-family="Archivo,Arial,sans-serif" font-size="13" font-weight="700" fill="#F2B400">${f.speed} km/h</text>
+  <text x="120" y="232" font-family="Archivo,Arial,sans-serif" font-size="13" fill="#fff">LIMIT ${f.limit}</text>
+  <text x="390" y="232" text-anchor="end" font-family="Archivo,Arial,sans-serif" font-size="13" font-weight="700" fill="#FF8A80">+${over} OVER</text>
+</svg>`;
+}
+
+/* ---------- views ---------- */
+function viewLogin(){
+  const step2 = S.loginStep===2;
+  return `<div class="login">
+    <div style="display:flex;gap:10px;align-items:center"><span class="sign" style="width:46px;height:46px;font-size:16px;border-width:4px">100</span><strong style="font-stretch:90%">Expressway Fines</strong></div>
+    <h1>Check and pay your speed fines</h1>
+    <p>Sign in to see fines from expressway speed cameras for your vehicles.</p>
+    ${!step2 ? `
+      <label for="nic">NIC or driving licence number</label>
+      <input id="nic" type="text" autocomplete="off" placeholder="e.g. 199012345678" value="">
+      <label for="mob">Mobile number</label>
+      <input id="mob" type="tel" placeholder="07X XXX XXXX">
+      <div class="err" role="alert">${esc(S.loginErr)}</div>
+      <div style="margin-top:18px"><button class="btn" data-a="sendotp">Send code</button></div>
+    ` : `
+      <label for="otp">6-digit code sent by SMS</label>
+      <input id="otp" type="text" inputmode="numeric" maxlength="6" placeholder="••••••">
+      <div class="hint">Demo: enter any 6 digits.</div>
+      <div class="err" role="alert">${esc(S.loginErr)}</div>
+      <div style="margin-top:18px" class="row2"><button class="btn alt" data-a="loginback">Back</button><button class="btn" data-a="verify">Sign in</button></div>
+    `}
+    <div class="demo">Prototype with sample data. Fine amounts and rules are placeholders until confirmed by the authorities.</div>
+  </div>`;
+}
+
+function fineRow(f){
+  const st = statusOf(f);
+  const cls = st==='paid' ? 'paid' : '';
+  return `<li><button class="fine" data-a="open" data-id="${f.id}">
+    <span class="sign ${cls}" aria-hidden="true">${f.speed}</span>
+    <span class="mid">
+      <div class="road">${esc(f.road)}</div>
+      <div class="meta">Km ${f.km} · ${fmtDate(f.time)} · ${esc(f.plate)}</div>
+      <div class="meta">Limit ${f.limit}, +${f.speed-f.limit} km/h</div>
+    </span>
+    <span class="end"><div class="amt num">${rs(f.amount)}</div><span class="badge b-${st}">${label[st]}</span></span>
+  </button></li>`;
+}
+
+function viewHome(){
+  const all = visible();
+  const unpaid = all.filter(f=>f.status!=='paid');
+  const paid = all.filter(f=>f.status==='paid');
+  const list = S.tab==='unpaid' ? unpaid : S.tab==='paid' ? paid : all;
+  const pay = payable(unpaid);
+  const due = pay.reduce((a,f)=>a+f.amount,0);
+  const overdueN = pay.filter(f=>statusOf(f)==='overdue').length;
+  const emptyMsg = S.tab==='unpaid' ? ['No unpaid fines','You are all clear. Drive safe.'] : S.tab==='paid' ? ['No paid fines yet','Paid fines and receipts will show here.'] : ['No fines','Nothing recorded for this vehicle.'];
+  return `
+  <div class="topbar"><div><h1>My fines</h1><div class="who">${esc(S.user.name)} · NIC ${esc(S.user.nic)}</div></div>
+    <button class="iconbtn" data-a="notify" aria-label="Reminders">${I.bell}</button></div>
+  <main>
+    <section class="gantry" aria-label="Fine summary">
+      <div class="head"><span>${S.plate==='all'?'All vehicles':esc(S.plate)}</span><span class="e">Fines</span></div>
+      <div class="counts">
+        <div class="count"><b class="num">${all.length}</b><span>Total</span></div>
+        <div class="count unpaid"><b class="num">${unpaid.length}</b><span>Unpaid</span></div>
+        <div class="count"><b class="num">${paid.length}</b><span>Paid</span></div>
+      </div>
+    </section>
+    ${pay.length ? `<div class="due"><div><small>${overdueN?`${overdueN} overdue · `:''}Due now</small><strong class="num">${rs(due)}</strong></div>
+      <button class="btn warn" style="width:auto" data-a="payall">Pay ${pay.length>1?'all':'now'}</button></div>` : `<div style="height:14px"></div>`}
+    <div class="chips" role="group" aria-label="Filter by vehicle">
+      <button class="chip" aria-pressed="${S.plate==='all'}" data-a="plate" data-p="all">All vehicles</button>
+      ${S.data.vehicles.map(v=>`<button class="chip" aria-pressed="${S.plate===v.plate}" data-a="plate" data-p="${esc(v.plate)}">${esc(v.plate)}</button>`).join('')}
+    </div>
+    <div class="tabs" role="tablist">
+      ${[['unpaid','Unpaid',unpaid.length],['paid','Paid',paid.length],['all','All',all.length]].map(([k,n,c])=>`<button class="tab" role="tab" aria-selected="${S.tab===k}" data-a="tab" data-t="${k}">${n} (${c})</button>`).join('')}
+    </div>
+    ${list.length ? `<ul class="list">${list.map(fineRow).join('')}</ul>` : `<div class="empty"><b>${emptyMsg[0]}</b>${emptyMsg[1]}</div>`}
+  </main>`;
+}
+
+function viewDetail(){
+  const f = S.data.fines.find(x=>x.id===S.openId); if(!f) return viewHome();
+  const st = statusOf(f);
+  const over = f.speed - f.limit;
+  const kv = (k,v,c='') => `<div class="kv"><span>${k}</span><span class="${c}">${v}</span></div>`;
+  return `<main style="padding-top:6px">
+    <button class="back" data-a="close">${I.back} Back to fines</button>
+    <div class="evidence">${evidence(f)}</div>
+    <div class="card">
+      ${kv('Status',`<span class="badge b-${st}" style="margin:0">${label[st]}</span>`)}
+      ${kv('Fine ID',esc(f.id))}
+      ${kv('Date and time',`${fmtDate(f.time)}, ${fmtTime(f.time)}`)}
+      ${kv('Location',`${esc(f.road)}, Km ${f.km}`)}
+      ${kv('Camera',`${f.code}-K${f.km}`)}
+      ${kv('Vehicle',`<span class="plate" style="font-size:14px">${esc(f.plate)}</span>`)}
+      ${kv('Speed limit',`${f.limit} km/h`)}
+      ${kv('Recorded speed',`${f.speed} km/h`)}
+      ${kv('Over the limit',`+${over} km/h`,'over')}
+      ${kv('Fine amount',`<span class="num">${rs(f.amount)}</span>`)}
+      ${f.status==='paid' ? kv('Paid on',fmtDate(f.paidOn)) + kv('Method',esc(f.method)) + kv('Receipt',esc(f.ref)) : kv('Pay by',`<span class="${st==='overdue'?'over':''}">${fmtDate(f.due)}</span>`)}
+      ${f.status==='appeal' ? kv('Appeal reason',esc(f.appealReason||'')) : ''}
+    </div>
+    ${f.status==='unpaid' ? `<div class="row2"><button class="btn" data-a="pay" data-id="${f.id}">Pay ${rs(f.amount)}</button><button class="btn alt" data-a="appeal" data-id="${f.id}">Appeal</button></div>
+       <p class="note">Appeals must be filed before the due date. A fine under appeal cannot be paid until the officer decides.</p>` : ''}
+    ${f.status==='appeal' ? `<p class="note">An officer is reviewing your appeal. You will get an SMS with the decision.</p>` : ''}
+    ${f.status==='paid' ? `<button class="btn alt" data-a="receipt" data-id="${f.id}">Download receipt</button>` : ''}
+  </main>`;
+}
+
+function viewVehicles(){
+  return `<div class="topbar"><h1>My vehicles</h1></div><main>
+    ${S.data.vehicles.map(v=>{
+      const fs = S.data.fines.filter(f=>f.plate===v.plate);
+      const un = fs.filter(f=>f.status!=='paid').length;
+      return `<div class="vehicle"><span class="plate">${esc(v.plate)}</span>
+        <span class="info"><b>${esc(v.label)}</b><br>${fs.length} fines · ${un} unpaid</span>
+        <button class="chip" data-a="viewveh" data-p="${esc(v.plate)}">View</button></div>`;}).join('')}
+    <div class="card" style="padding:14px">
+      <strong>Add a vehicle</strong>
+      <label for="np">Plate number</label>
+      <input id="np" type="text" placeholder="e.g. CBA-1234" autocapitalize="characters">
+      <label for="nl">Vehicle name (optional)</label>
+      <input id="nl" type="text" placeholder="e.g. Suzuki Alto">
+      <div class="err" role="alert">${esc(S.loginErr)}</div>
+      <div style="margin-top:14px"><button class="btn" data-a="addveh">Add vehicle</button></div>
+    </div>
+    <p class="note">Only add vehicles registered in your name. Ownership is checked against the vehicle registry.</p>
+  </main>`;
+}
+
+function viewAccount(){
+  return `<div class="topbar"><h1>Account</h1></div><main>
+    <div class="card">
+      <div class="kv"><span>Name</span><span>${esc(S.user.name)}</span></div>
+      <div class="kv"><span>NIC / licence</span><span>${esc(S.user.nic)}</span></div>
+      <div class="kv"><span>Mobile</span><span>${esc(S.user.mobile)}</span></div>
+      <div class="kv"><span>Reminders</span><span>SMS 7 days and 1 day before due</span></div>
+    </div>
+    <div class="card" style="padding:14px">
+      <strong>Try the camera system</strong>
+      <p class="note" style="margin:6px 0 12px">Simulates a speed camera catching one of your vehicles. A new unpaid fine appears in your list.</p>
+      <button class="btn warn" data-a="simulate">Simulate a camera detection</button>
+    </div>
+    <div class="row2"><button class="btn alt" data-a="reset">Reset sample data</button><button class="btn alt" data-a="logout">Sign out</button></div>
+  </main>`;
+}
+
+function viewSheet(){
+  const s = S.sheet; if(!s) return '';
+  if(s.type==='pay'){
+    const fs = s.ids.map(id=>S.data.fines.find(f=>f.id===id));
+    const total = fs.reduce((a,f)=>a+f.amount,0);
+    const M = [['Card','Visa or Mastercard'],['LankaQR','Scan with your bank app'],['Bank transfer','Direct online banking']];
+    return `<div class="scrim" data-a="dismiss"><div class="sheet" role="dialog" aria-modal="true" aria-label="Pay fines">
+      <h2>Pay ${fs.length>1?fs.length+' fines':'fine'}</h2>
+      <div class="note" style="margin:0">${fs.map(f=>esc(f.id)).join(', ')}</div>
+      <div class="methods" role="radiogroup" aria-label="Payment method">
+        ${M.map(([n,d])=>`<button class="method" role="radio" aria-checked="${s.method===n}" data-a="method" data-m="${n}"><span><b>${n}</b><small>${d}</small></span></button>`).join('')}
+      </div>
+      <button class="btn" data-a="confirmpay" ${s.busy?'disabled':''}>${s.busy?'Processing…':'Pay '+rs(total)}</button>
+      <p class="note center">Demo only. No real payment is taken.</p>
+    </div></div>`;
+  }
+  if(s.type==='paid'){
+    return `<div class="scrim" data-a="dismiss"><div class="sheet center" role="dialog" aria-modal="true" aria-label="Payment received">
+      <div class="tick">${I.check}</div>
+      <h2>Payment received</h2>
+      <p class="note">${rs(s.total)} paid by ${esc(s.method)}.<br>Receipt ${esc(s.ref)}</p>
+      <button class="btn" data-a="dismiss">Done</button>
+    </div></div>`;
+  }
+  if(s.type==='appeal'){
+    return `<div class="scrim" data-a="dismiss"><div class="sheet" role="dialog" aria-modal="true" aria-label="Appeal fine">
+      <h2>Appeal this fine</h2>
+      <div class="note" style="margin:0">${esc(s.id)}</div>
+      <label for="reason">Reason</label>
+      <select id="reason"><option>I was not driving</option><option>Vehicle sold or transferred</option><option>Wrong plate read</option><option>Speed reading seems wrong</option><option>Emergency</option><option>Other</option></select>
+      <label for="why">Details</label>
+      <textarea id="why" placeholder="Tell the officer what happened."></textarea>
+      <div style="margin-top:14px" class="row2"><button class="btn alt" data-a="dismiss">Cancel</button><button class="btn" data-a="sendappeal">Submit appeal</button></div>
+    </div></div>`;
+  }
+  return '';
+}
+
+function nav(){
+  const items=[['fines','Fines',I.list],['vehicles','Vehicles',I.car],['account','Account',I.user]];
+  return `<nav class="bottom" aria-label="Main">${items.map(([k,n,ic])=>`<button data-a="nav" data-n="${k}" ${S.nav===k&&S.screen!=='detail'?'aria-current="page"':''}>${ic}${n}</button>`).join('')}</nav>`;
+}
+
+function render(){
+  const app = $('#app');
+  let body;
+  if(S.screen==='login') body = viewLogin();
+  else if(S.screen==='detail') body = viewDetail();
+  else body = S.nav==='vehicles' ? viewVehicles() : S.nav==='account' ? viewAccount() : viewHome();
+  app.innerHTML = body + (S.screen==='login' ? '' : nav()) + viewSheet() + (S.toast ? `<div class="toast" role="status">${esc(S.toast)}</div>` : '');
+}
+
+let toastT;
+function toast(msg){ S.toast=msg; render(); clearTimeout(toastT); toastT=setTimeout(()=>{S.toast=null;render();},2600); }
+
+/* ---------- actions ---------- */
+function applyPayment(ids, method){
+  const ref = rid('RCP-');
+  S.data.fines.forEach(f=>{ if(ids.includes(f.id)){ f.status='paid'; f.paidOn=Date.now(); f.method=method; f.ref=ref; }});
+  save();
+  return ref;
+}
+
+const A = {
+  sendotp(){
+    const nic = $('#nic').value.trim(), mob = $('#mob').value.trim();
+    if(nic.length<9){ S.loginErr='Enter a valid NIC or licence number.'; return render(); }
+    if(mob.replace(/\D/g,'').length<9){ S.loginErr='Enter a valid mobile number.'; return render(); }
+    S.pending={nic,mobile:mob}; S.loginErr=''; S.loginStep=2; render();
+  },
+  loginback(){ S.loginStep=1; S.loginErr=''; render(); },
+  verify(){
+    const otp = $('#otp').value.trim();
+    if(!/^\d{6}$/.test(otp)){ S.loginErr='Enter the 6-digit code.'; return render(); }
+    S.user={name:'Kasun Perera',nic:S.pending.nic,mobile:S.pending.mobile};
+    S.screen='home'; S.nav='fines'; S.loginErr=''; save(); render();
+  },
+  logout(){ S.user=null; S.screen='login'; S.loginStep=1; save(); render(); },
+  nav(el){ S.nav=el.dataset.n; S.screen='home'; S.loginErr=''; render(); window.scrollTo(0,0); },
+  tab(el){ S.tab=el.dataset.t; render(); },
+  plate(el){ S.plate=el.dataset.p; render(); },
+  viewveh(el){ S.plate=el.dataset.p; S.nav='fines'; S.tab='all'; render(); },
+  open(el){ S.openId=el.dataset.id; S.screen='detail'; render(); window.scrollTo(0,0); },
+  close(){ S.screen='home'; S.openId=null; render(); },
+  notify(){ toast('SMS reminders go out 7 days and 1 day before the due date.'); },
+  pay(el){ S.sheet={type:'pay',ids:[el.dataset.id],method:'Card'}; render(); },
+  payall(){ const ids = payable(visible()).map(f=>f.id); S.sheet={type:'pay',ids,method:'Card'}; render(); },
+  method(el){ S.sheet.method=el.dataset.m; render(); },
+  confirmpay(){
+    const s=S.sheet; s.busy=true; render();
+    setTimeout(()=>{
+      const total = s.ids.reduce((a,id)=>a+S.data.fines.find(f=>f.id===id).amount,0);
+      const ref = applyPayment(s.ids, s.method);
+      S.sheet={type:'paid',total,method:s.method,ref}; render();
+    }, 900);
+  },
+  dismiss(el, e){ if(e && e.target!==el && el.classList.contains('scrim')) return; S.sheet=null; render(); },
+  appeal(el){ S.sheet={type:'appeal',id:el.dataset.id}; render(); },
+  sendappeal(){
+    const f = S.data.fines.find(x=>x.id===S.sheet.id);
+    f.status='appeal'; f.appealReason=$('#reason').value; save();
+    S.sheet=null; toast('Appeal submitted. You will get an SMS with the decision.');
+  },
+  receipt(el){ toast('Receipt would download as a PDF in the real app.'); },
+  addveh(){
+    const p = ($('#np').value||'').trim().toUpperCase().replace(/\s+/g,'');
+    if(!/^[A-Z]{1,3}-?\d{4}$/.test(p)){ S.loginErr='Enter a plate like CBA-1234.'; return render(); }
+    const plate = p.includes('-') ? p : p.replace(/([A-Z]+)(\d{4})/,'$1-$2');
+    if(S.data.vehicles.some(v=>v.plate===plate)){ S.loginErr='That vehicle is already added.'; return render(); }
+    S.data.vehicles.push({plate,label:($('#nl').value||'').trim()||'Vehicle'}); S.loginErr=''; save();
+    toast(plate+' added.');
+  },
+  simulate(){
+    const road = ROADS[Math.floor(Math.random()*ROADS.length)];
+    const km = road.kms[Math.floor(Math.random()*road.kms.length)];
+    const speed = road.limit + 8 + Math.floor(Math.random()*45);
+    const v = S.data.vehicles[Math.floor(Math.random()*S.data.vehicles.length)];
+    const now = Date.now();
+    S.data.fines.push({id:rid('F-',8),plate:v.plate,road:road.name,code:road.code,km,limit:road.limit,speed,amount:fineFor(road.limit,speed),time:now,due:now+14*DAY,status:'unpaid'});
+    save(); S.nav='fines'; S.tab='unpaid'; S.plate='all';
+    toast(`Camera ${road.code}-K${km} caught ${v.plate} at ${speed} km/h. SMS sent.`);
+  },
+  reset(){ S.data=seed(); S.plate='all'; save(); toast('Sample data restored.'); }
+};
+
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-a]'); if(!el) return;
+  const fn = A[el.dataset.a]; if(fn) fn(el, e);
+});
+
+render();
+</script>
+</body>
+</html>
